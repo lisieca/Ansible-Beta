@@ -1,0 +1,26 @@
+---
+- name: Create a clientssl profile
+  hosts: f5demo
+  gather_facts: false
+  vars: 
+    - profile_name: '' 
+    - state: ''
+
+  collections:
+    - f5networks.f5_modules
+    
+  tasks:
+    - name: Setting up provider values
+      set_fact:
+       provider:
+        server: "{{ inventory_hostname }}"
+        server_port: "8443" # on-prem "443" public cloud "8443"
+        validate_certs: "False"
+
+    - name: Create a TCP profile
+      delegate_to: localhost
+      bigip_profile_tcp:
+        provider: "{{provider}}"
+        name: "{{profile_name}}"
+        parent: tcp
+        state: "{{state}}"

@@ -1,0 +1,14 @@
+---
+- name: Play for setting a banner on NXOS
+  hosts: cisco_nxos
+  gather_facts: false
+
+  tasks:
+    - name: configure the exec banner
+      cisco.nxos.nxos_banner:
+        banner: exec
+        text: |
+          this is my exec banner
+          that contains a multiline
+          string
+        state: present

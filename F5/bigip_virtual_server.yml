@@ -1,0 +1,48 @@
+---
+- name: BIG-IP SETUP
+  hosts: f5demo
+  gather_facts: false
+
+  collections:
+    - f5networks.f5_modules
+    
+  tasks:
+    - name: Setting up provider values
+      set_fact:
+       provider:
+        server: "{{ inventory_hostname }}"
+        server_port: "8443" # on-prem "443" public cloud "8443"
+        validate_certs: "False"
+
+    - name: Create or delete virtual server
+      delegate_to: localhost
+      bigip_virtual_server:
+        provider: "{{ provider }}"
+        name: "{{ vs_name }}"
+        destination: "{{ inventory_hostname }}"
+        port: "443"
+        pool: "http_pool"
+        state: "{{ state }}"
+        enabled_vlans: "all"
+        profiles: 
+          - cool_http
+          - cool_clientssl
+          - cool_tcp
+          - oneconnect
+        snat: "Automap"
+
+    - name: Create or delete a HTTP Redirect Virtual Server
+      delegate_to: localhost
+      bigip_virtual_server:
+        provider: "{{ provider }}"
+        name: coolApp_redirect
+        #destination: "{{ec2_private_ip_address}}"
+        #destination: "{{ private_ip }}"
+        destination: IP of vip
+        port: "80"
+        state: "{{ state }}"
+        enabled_vlans: "all"
+        profiles:
+          - http
+        irules:
+          - _sys_https_redirect

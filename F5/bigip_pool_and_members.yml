@@ -1,0 +1,40 @@
+---
+- name: BIG-IP SETUP
+  hosts: f5demo 
+  gather_facts: false
+  vars: 
+    - F5_mgmt_ip: ''
+    - server_port: ''
+    - state: ''
+
+
+  collections:
+    - f5networks.f5_modules
+  
+  tasks:
+    - name: Setting up provider values
+      set_fact:
+       provider:
+        server: "{{ inventory_hostname }}"
+        server_port: "{{ server_port }}" # on-prem "443" public cloud "8443"
+        validate_certs: "False"
+
+    - name: CREATE POOL
+      delegate_to: localhost
+      bigip_pool:
+        provider: "{{provider}}"
+        state: "{{ state }}"
+        name: "http_pool"
+        lb_method: "round-robin"
+        monitors: "/Common/http"
+        monitor_type: "and_list"
+
+    - name: ADD POOL MEMBERS
+      bigip_pool_member:
+        provider: "{{provider}}"
+        state: "{{ state }}"
+        name: "{{hostvars[item].inventory_hostname}}"
+        host: "{{hostvars[item].ansible_host}}"
+        port: "80"
+        pool: "http_pool"
+      loop: "{{ groups['tag_Type_ml_demo'] }}"

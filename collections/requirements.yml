@@ -1,0 +1,9 @@
+---
+collections:
+  - name: cisco.nxos
+  - name: f5networks.f5_modules
+  - name: cisco.aci
+  - name: netapp.ontap
+  - name: community.windows
+  - name: ansible.windows
+  - name: ansible.posix

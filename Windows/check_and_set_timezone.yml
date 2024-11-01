@@ -1,0 +1,14 @@
+---
+- hosts: all
+  gather_facts: False 
+
+  tasks:
+      - name: Check TimeZone 
+        ansible.builtin.shell: timedatectl | grep -i 'time zone'| awk '{ print $3}'
+        register: TimeZoneOUT
+      - debug: msg={{TimeZoneOUT.stdout}}
+
+      - name: Set timezone when is not America/Los_Angeles
+        ansible.builtin.shell: timedatectl set-timezone America/Los_Angeles
+        when: TimeZoneOUT.stdout != 'America/Los_Angeles'
+...

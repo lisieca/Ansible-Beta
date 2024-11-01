@@ -1,0 +1,11 @@
+---
+- name: Preparing to copy file to remote server
+  hosts: all
+  gather_facts: False
+
+  tasks:
+    - name: Copying now...
+      ansible.windows.win_copy:
+        src: /backup/splunkforwarder-8.2.1-ddff1c41e5cf-x64-release.msi
+        dest: C:\splunkforwarder-8.2.1-ddff1c41e5cf-x64-release.msi
+...

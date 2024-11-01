@@ -1,0 +1,12 @@
+---
+- name: Prepping for CVE-2020-1350.
+  hosts: all
+  gather_facts: False
+
+  tasks:
+    - name: Backing up Registry settings
+      ansible.windows.win_command: REG EXPORT HKLM C:\HKLM.Reg /y
+      register: reg_save
+    - debug:
+        msg: "This is '{{reg_save}}'"
+...

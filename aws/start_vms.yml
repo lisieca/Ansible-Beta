@@ -1,0 +1,17 @@
+---
+- name: AAP VMs
+  hosts: localhost
+  connection: local
+  vars:
+    infrastructure_region: ''
+    tag_value: ''
+    state: '' # running, restarted, stopped, terminated 
+
+  tasks:
+    - name: start/stop VMs based on tag filters
+      register: aap_vms
+      amazon.aws.ec2_instance:
+        state: "{{ state }}"
+        region: "{{ infrastructure_region }}"
+        filters:
+          "tag:group": "{{ tag_value }}"

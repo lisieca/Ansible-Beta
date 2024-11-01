@@ -1,0 +1,25 @@
+---
+- hosts: localhost # Network devices don't have python. Processing must be done on localhost
+  connection: local
+  gather_facts: no # gather_facts are only for server OS's. Network facts require a module
+  vars:
+    tenant: '' # Declare vars at top of playbook. This makes it easy to see a list of required variables
+    description: ''
+    state: ''
+
+  tasks:
+
+    # Optionally you can set the provider values. Useful if using many aci modules in the 
+    # same playbook. Then it only needs to be declared once at the top
+
+    - name: Ensure tenant customer-xyz exists
+      cisco.aci.aci_tenant: # Best practice is to use full name space
+        # host: "{{ aci_host }}"     # host, username and password are supplied by custom credential
+        #port: "{{ port }}"
+        # username: "{{ aci_username }}"
+        # password: "{{ aci_password }}"
+
+        tenant: "{{ aci_tenant }}"
+        description: "{{ description }}"
+        state: "{{ state }}" # present, absent or query
+  # Avoid hard coding values. The more variables you use, the more shareable the playbook.

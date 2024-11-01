@@ -1,0 +1,26 @@
+---
+- name: Looking up file to import PEM Certificate
+  hosts: f5demo
+  gather_facts: false
+
+  collections:
+    - f5networks.f5_modules
+    
+  tasks:
+    - name: Setting up provider values
+      set_fact:
+       provider:
+        server: "{{ inventory_hostname }}"
+        server_port: "8443" # on-prem "443" public cloud "8443"
+        validate_certs: "False"
+
+    - name: Importing Certificate and Key now...
+      delegate_to: localhost
+      bigip_ssl_key_cert:
+        key_content: "{{ lookup('file', 'cool.key') }}"
+        key_name: cool
+        cert_content: "{{ lookup('file', 'cool.crt') }}"
+        cert_name: cool
+        state: present
+        provider: "{{ provider }}"
+...        

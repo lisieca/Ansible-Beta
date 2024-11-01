@@ -1,0 +1,16 @@
+---
+- name: Merge provided ACLs configuration with device configuration
+  hosts: cisco_nxos
+  gather_facts: false
+
+  tasks:
+    - name: Merge provided configuration with device configuration
+      cisco.nxos.nxos_interfaces:
+        config:
+          - name: Ethernet1/1
+            description: Configured by Ansible
+            enabled: true
+          - name: Ethernet1/2
+            description: Configured by Ansible Network
+            enabled: false
+        state: merged

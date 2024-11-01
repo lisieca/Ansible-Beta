@@ -1,0 +1,15 @@
+---
+- name: Adding DNS record on Windows DNS server.
+  hosts: all
+  gather_facts: False
+  vars:
+    device_hostname: ''
+    DNS_domain: ''
+
+  tasks:
+  - name: Removing static ANAME record for {{ device_hostname }}
+    community.windows.win_dns_record:
+      name: "{{ device_hostname }}"
+      type: "A"
+      zone: "{{ DNS_domain }}"
+      state: present # "absent" to remove

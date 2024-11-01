@@ -1,0 +1,83 @@
+---
+- hosts: localhost 
+  name: Setup ONTAP 
+  connection: local
+  gather_facts: false
+
+  vars: 
+    hostname: ''
+    #username: '' not needed provided by credential
+    volname: ''
+    vserver: ''
+    aggr: ''
+    policy: '' 
+    state: '' 
+
+  #vars_files:
+   # - netapp_vars.yml
+
+  #vars_prompt: 
+  #- name: "password" 
+    #prompt: "Password:" 
+  
+  tasks: 
+  - name: 'Preflight Varible check :: volname'
+    fail: msg='Please include the volume name to the variable "volname"'
+    run_once: true
+
+  - name: 'Preflight Varible check :: vserver'
+    fail: msg='Please include the vserver name to the variable "vserver"'
+    run_once: true
+
+  - name: Create Policy 
+    na_ontap_export_policy: 
+      state: "{{ state }}" 
+      name: "{{ policy }}" # The name of the export-policy to manage.
+      vserver: "{{ vserver }}" 
+      hostname: "{{ netapp_hostname }}" # provided by custom credential
+      username: "{{ netapp_username }}" # provided by custom credential
+      password: "{{ netapp_password }}" # provided by custom credential
+
+  - name: Setup rules 
+    na_ontap_export_policy_rule: 
+      state: "{{ state }}" 
+      policy_name: "{{ policy }}" 
+      vserver: "{{ vserver }}" 
+      client_match: 0.0.0.0/0  
+      ro_rule: sys 
+      rw_rule: sys 
+      super_user_security: sys 
+      hostname: "{{ netapp_hostname }}" # provided by custom credential
+      username: "{{ netapp_username }}" # provided by custom credential
+      password: "{{ netapp_password }}" # provided by custom credential
+  - name: Create volume 
+    na_ontap_volume: 
+      state: "{{ state }}" 
+      name: "{{ volname }}" 
+      aggregate_name: "{{ aggr }}" 
+      size: 1
+      size_unit: gb 
+      policy: "{{ policy }}" 
+      junction_path: "/{{ volname }}" 
+      space_guarantee: "none" 
+      vserver: "{{ vserver }}" 
+      hostname: "{{ netapp_hostname }}" # provided by custom credential
+      username: "{{ netapp_username }}" # provided by custom credential
+      password: "{{ netapp_password }}" # provided by custom credential
+      
+- hosts: client 
+  tasks: 
+  - name: Update fstab file 
+    lineinfile: 
+      path: /etc/fstab 
+      line: "172.32.0.184:/{{ volname }} /mnt/ontap nfs defaults 0 0" # should turn IP into var?
+  - name: Verify mount directory exists 
+    file: 
+      path: /mnt/ontap 
+      state: directory 
+  - name: Mount nfs export 
+    mount: 
+      state: "{{ state }}" 
+      path: /mnt/ontap 
+      src: "172.32.0.184:/{{ volname }}" # should turn IP into var?
+      fstype: nfs

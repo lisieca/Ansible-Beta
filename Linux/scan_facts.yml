@@ -1,0 +1,21 @@
+---
+- name: Scan host for facts
+  hosts: "{{ _hosts  | default(omit) }}"
+  become: true
+
+  tasks:
+    - name: Get packages
+      ansible.builtin.package_facts:
+      register: packages
+
+    - name: Get services
+      ansible.builtin.service_facts:
+      register: services
+
+    - name: list of packages
+      ansible.builtin.debug:
+        var: packages
+
+    - name: list of services
+      ansible.builtin.debug:
+        var: services

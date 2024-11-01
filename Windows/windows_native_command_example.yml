@@ -1,0 +1,12 @@
+---
+- name: Test cmd from win_command module
+  hosts: all
+  gather_facts: False
+
+  tasks:
+    - name: Run netstat and return Ethernet stats to variable.
+      ansible.windows.win_command: netstat -e
+      register: netstat
+    - ansible.builtin.debug: 
+        var: netstat
+# Ethernet stats from netstat

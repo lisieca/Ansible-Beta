@@ -1,0 +1,3 @@
+windows_patching_reboot_server: false
+windows_patching_categories:
+  - CrticalUpdates

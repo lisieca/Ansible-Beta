@@ -1,0 +1,90 @@
+---
+- name: Patching Playbook 
+  hosts: all
+  become: yes
+  tasks:
+    - name: Get the kernel version before the patch
+      ansible.builtin.command: uname -r
+      register: kernel_before
+      changed_when: false
+    - name: Check subscription status
+      ansible.builtin.command: subscription-manager status
+      register: subscription_status
+      ignore_errors: yes
+      changed_when: false
+      failed_when: false
+      when: ansible_distribution == 'RedHat'
+    - name: Update package cache (Redhat Linux)
+      ansible.builtin.dnf:
+        name: '*'
+        state: latest
+      register: redhat_result
+      when: ansible_distribution == 'RedHat'
+    - name: Update package cache (Ubuntu)
+      apt:
+        update_cache: yes
+      when: ansible_distribution == 'Ubuntu'
+    - name: Upgrade all packages (Ubuntu)
+      apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes
+      register: ubuntu_result
+      when: ansible_distribution == 'Ubuntu'
+    - name: Reboot if updates were applied (Redhat)
+      reboot:
+      when: redhat_result.changed and ansible_distribution == 'RedHat'
+    - name: Reboot if updates were applied (Ubuntu)
+      reboot:
+      when: ubuntu_result.changed and ansible_distribution == 'Ubuntu'
+    - name: Wait for the system to come back online
+      wait_for_connection:
+        connect_timeout: 300
+      when: (redhat_result.changed and ansible_distribution == 'RedHat')
+    - name: Wait for the system to come back online
+      wait_for_connection:
+        connect_timeout: 300
+      when: (ubuntu_result.changed and ansible_distribution == 'Ubuntu')
+    - name: Get the kernel version after the patch
+      command: uname -r
+      register: kernel_after
+      changed_when: false
+    - name: Get uptime
+      command: uptime
+      register: uptime_result
+      changed_when: false
+    - name: Get hostname
+      command: hostname -f
+      register: hostname_result
+      changed_when: false
+    - name: RedHat OS version
+      command: cat /etc/redhat-release
+      register: osversion_result
+      changed_when: false
+      when: ansible_distribution == 'RedHat'
+    - name: Ubuntu OS version
+      command: lsb_release -a
+      register: osversion_result
+      changed_when: false
+      when: ansible_distribution == 'Ubuntu'
+    - name: print osversion
+      debug:
+        var: osversion_result.stdout
+    - name: print hostname
+      debug:
+        var: hostname_result.stdout
+    - name: print uptime
+      debug:
+        var: uptime_result.stdout
+    - name: print uptime
+      debug:
+        var: uptime_result.stdout
+    - name: print kernel_before
+      debug:
+        var: kernel_before.stdout
+    - name: print kernel_after
+      debug:
+        var: kernel_after.stdout
+    - name: Display hostname, uptime and kernel versions
+      debug:
+       msg: "Hostname: {{ hostname_result.stdout }} - OS version - {{ osversion_result.stdout }} - Uptime: {{ uptime_result.stdout }} - Kernel Version (Before): {{ kernel_before.stdout }} - Kernel Version (After): {{ kernel_after.stdout }}"

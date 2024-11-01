@@ -1,0 +1,25 @@
+---
+- name: Merge provided ACLs configuration with device configuration
+  hosts: cisco_nxos
+  gather_facts: false
+
+  tasks:
+    - name: Replace existing ACL configuration with provided configuration
+      cisco.nxos.nxos_acls:
+        config:
+          - afi: ipv4
+          - afi: ipv6
+            acls:
+              - name: ACL1v6
+                aces:
+                  - sequence: 20
+                    grant: permit
+                    source:
+                      any: true
+                    destination:
+                      any: true
+                    protocol: pim
+
+                  - remark: Replaced ACE
+              - name: ACL2v6
+        state: replaced
