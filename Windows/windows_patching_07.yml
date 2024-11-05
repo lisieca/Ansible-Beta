@@ -1,6 +1,6 @@
 ---
 - name: Windows patching
-  hosts: windemo
+  hosts: all
 
   roles:
 
