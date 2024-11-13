@@ -1,0 +1,7 @@
+---
+- name: Enable the SMB Server
+  hosts: windemo
+
+  roles:
+
+    - role: enable_smb_server
