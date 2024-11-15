@@ -4,7 +4,7 @@
   sources:
     - ansible.eda.url_check:
         urls:
-          - https://aap.kona.services:8443
+          - http://ec2-18-223-211-145.us-east-2.compute.amazonaws.com/
         delay: 60
   rules:
     - name: Check webserver
