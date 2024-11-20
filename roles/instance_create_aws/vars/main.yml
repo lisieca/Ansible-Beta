@@ -1,0 +1,15 @@
+---
+vpc_name: Default_VPC
+user_name: lisieca
+subnet_name: "{{ vpc_name }}_Subnet"
+image: ami-068ef5256a61486e3
+count: 1
+region: us-east-2
+assign_public_ip: true
+alwaysup: false
+instance_type: m5.xlarge
+ec2_security_group_name: "{{ vpc_name }}_SECGRP"
+ec2_ansible_group: "{{ user_name }}"
+my_email_address: "{{ user_name }}@amazon.com"
+my_ssh_key: PEM-OpenSSH-Keypair.pem
+ansible_python_interpreter: /usr/bin/python3
