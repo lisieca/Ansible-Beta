@@ -1,7 +1,7 @@
 ---
 vpc_name: Default_VPC
 user_name: lisieca
-subnet_name: "{{ vpc_name }}_Subnet"
+subnet_name: "Default-Subnet"
 image: ami-068ef5256a61486e3
 count: 1
 region: us-east-2
