@@ -11,5 +11,5 @@ instance_type: m5.xlarge
 ec2_security_group_name: "default"
 ec2_ansible_group: "{{ user_name }}"
 my_email_address: "{{ user_name }}@amazon.com"
-my_ssh_key: PEM-OpenSSH-Keypair.pem
+my_ssh_key: PEM-OpenSSH-Keypair
 ansible_python_interpreter: /usr/bin/python3
