@@ -7,3 +7,4 @@ collections:
   - name: community.windows
   - name: ansible.windows
   - name: ansible.posix
+  - name: amazon.aws
