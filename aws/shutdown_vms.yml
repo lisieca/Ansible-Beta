@@ -8,8 +8,7 @@
       amazon.aws.ec2_instance:
         state: stopped
         filters:
-          tag:
-            group: rhel
+          "tag:group": rhel
           instance-state-name:
             - pending
             - running
