@@ -5,7 +5,7 @@
     - name: Stop and disable list of windows services
       loop:
         - MicrosoftEdgeElevationService
-        - Print Spooler
+        - Spooler
       register: result
       failed_when: result.msg is defined and "Access is denied" not in result.msg
       delay: 5
