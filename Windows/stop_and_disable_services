@@ -1,0 +1,16 @@
+---
+- name: Stop and disable list of windows services
+  hosts: windows
+  tasks:
+    - name: Stop and disable list of windows services
+      loop:
+        - MicrosoftEdgeElevationService
+        - Print Spooler
+      register: result
+      failed_when: result.msg is defined and "Access is denied" not in result.msg
+      delay: 5
+      retries: 3
+      ansible.windows.win_service:
+        name: "{{ item }}"
+        state: stopped
+        start_mode: disabled
