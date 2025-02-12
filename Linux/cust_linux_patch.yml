@@ -86,6 +86,6 @@
     - name: print kernel_after
       debug:
         var: kernel_after.stdout
-    # - name: Display hostname, uptime and kernel versions
+    # - name: Display hostname, uptime and kernel versions.
     #  debug:
     #   msg: "Hostname: {{ hostname_result.stdout }} - OS version - {{ osversion_result.stdout }} - Uptime: {{ uptime_result.stdout }} - Kernel Version (Before): {{ kernel_before.stdout }} - Kernel Version (After): {{ kernel_after.stdout }}"
