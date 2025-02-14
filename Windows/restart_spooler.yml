@@ -1,0 +1,123 @@
+---
+- name: Restart Print Spooler Service
+  hosts: "{{ target_server }}"  # Uses the server passed from Lambda
+  gather_facts: false
+  
+  vars:
+    service_name: "Spooler"
+    max_retries: 3
+    retry_delay: 10
+    log_path: "C:\\ansible_logs\\spooler_restart.log"
+
+  pre_tasks:
+    - name: Ensure log directory exists
+      win_file:
+        path: "C:\\ansible_logs"
+        state: directory
+      ignore_errors: true
+
+    - name: Verify target server exists
+      fail:
+        msg: "Target server not specified or invalid"
+      when: target_server is not defined or target_server == ""
+
+    - name: Log initial execution details
+      win_shell: |
+        $LogEntry = @"
+        =====================================
+        Execution Start
+        Timestamp: {{ ansible_date_time.iso8601 }}
+        Target Server: {{ target_server }}
+        Alarm Name: {{ alarm_name }}
+        Instance ID: {{ instance_id }}
+        Triggered By: {{ triggered_by }}
+        ====================================
+        "@
+        Add-Content -Path "{{ log_path }}" -Value $LogEntry
+      ignore_errors: true
+
+  tasks:
+    - name: Get current Print Spooler status
+      win_service:
+        name: "{{ service_name }}"
+      register: initial_status
+
+    - name: Log initial service status
+      win_shell: |
+        Add-Content -Path "{{ log_path }}" -Value "Initial Print Spooler Status: {{ initial_status.state }}"
+      ignore_errors: true
+
+    - name: Stop Print Spooler
+      win_service:
+        name: "{{ service_name }}"
+        state: stopped
+      register: stop_result
+      retries: "{{ max_retries }}"
+      delay: "{{ retry_delay }}"
+      until: stop_result is success
+      
+    - name: Log service stop attempt
+      win_shell: |
+        Add-Content -Path "{{ log_path }}" -Value "Print Spooler Stop Attempt: {{ 'Success' if stop_result.changed else 'Failed' }}"
+      ignore_errors: true
+
+    - name: Wait for service to fully stop
+      win_shell: Start-Sleep -s 5
+      
+    - name: Start Print Spooler
+      win_service:
+        name: "{{ service_name }}"
+        state: started
+      register: start_result
+      retries: "{{ max_retries }}"
+      delay: "{{ retry_delay }}"
+      until: start_result is success
+
+    - name: Log service start attempt
+      win_shell: |
+        Add-Content -Path "{{ log_path }}" -Value "Print Spooler Start Attempt: {{ 'Success' if start_result.changed else 'Failed' }}"
+      ignore_errors: true
+
+    - name: Verify final service status
+      win_service:
+        name: "{{ service_name }}"
+      register: final_status
+
+    - name: Final status check and logging
+      win_shell: |
+        $FinalEntry = @"
+        =====================================
+        Execution Complete
+        Timestamp: {{ ansible_date_time.iso8601 }}
+        Final Service Status: {{ final_status.state }}
+        Service Start Mode: {{ final_status.start_mode }}
+        =====================================
+        "@
+        Add-Content -Path "{{ log_path }}" -Value $FinalEntry
+      ignore_errors: true
+
+    - name: Send status notification
+      debug:
+        msg: |
+          Print Spooler Restart Operation Summary:
+          - Server: {{ target_server }}
+          - Initial Status: {{ initial_status.state }}
+          - Final Status: {{ final_status.state }}
+          - Triggered by Alarm: {{ alarm_name }}
+          - Instance ID: {{ instance_id }}
+
+  handlers:
+    - name: Log error
+      win_shell: |
+        Add-Content -Path "{{ log_path }}" -Value "ERROR: {{ ansible_failed_task.name }} failed at {{ ansible_date_time.iso8601 }}"
+      listen: "log failure"
+
+  rescue:
+    - name: Log failure
+      win_shell: |
+        Add-Content -Path "{{ log_path }}" -Value "FATAL: Playbook execution failed at {{ ansible_date_time.iso8601 }}"
+      ignore_errors: true
+
+    - name: Send failure notification
+      debug:
+        msg: "Print Spooler restart failed on {{ target_server }}"
