@@ -1,6 +1,6 @@
 ---
 - name: Windows patching
-  hosts: "tag:group": Windows
+  hosts: all
 
   roles:
 
