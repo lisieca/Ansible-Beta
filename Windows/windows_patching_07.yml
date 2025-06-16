@@ -1,6 +1,6 @@
 ---
 - name: Windows patching
-  hosts: i-022dc56607164bff8
+  hosts: all
 
   roles:
 
