@@ -1,6 +1,6 @@
 ---
 - name: Windows patching
-  hosts: 172.31.8.124
+  hosts: i-022dc56607164bff8
 
   roles:
 
