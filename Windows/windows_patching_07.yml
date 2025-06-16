@@ -1,6 +1,6 @@
 ---
 - name: Windows patching
-  hosts: all
+  hosts: ec2-3-145-78-40.us-east-2.compute.amazonaws.com
 
   roles:
 
