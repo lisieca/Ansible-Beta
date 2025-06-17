@@ -1,6 +1,6 @@
 ---
 - name: Windows Patching Playbook
-  hosts: tag_OS_Windows
+  hosts: Windows
   serial: 3 
   gather_facts: false
   vars:
@@ -8,7 +8,6 @@
     ansible_winrm_server_cert_validation: ignore
     ansible_winrm_transport: ntlm
     ansible_port: 5986
-    # Windows specific temp path
     ansible_remote_tmp: 'C:\Windows\Temp'
     update_categories: "{{ categories | default(['SecurityUpdates', 'CriticalUpdates']) }}"
     do_reboot: "{{ perform_reboot | default('yes') }}"
