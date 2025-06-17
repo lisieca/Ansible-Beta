@@ -6,7 +6,7 @@
   vars:
     ansible_connection: winrm
     ansible_winrm_server_cert_validation: ignore
-    ansible_winrm_transport: ntlm
+    ansible_winrm_transport: negotiate
     ansible_port: 5986
     ansible_remote_tmp: 'C:\Windows\Temp'
     update_categories: "{{ categories | default(['SecurityUpdates', 'CriticalUpdates']) }}"
