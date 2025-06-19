@@ -9,12 +9,9 @@
     ansible_winrm_transport: credssp
     ansible_port: 5986
     ansible_remote_tmp: 'C:\Windows\Temp'
-    update_categories: "{{ categories | default(['SecurityUpdates', 'CriticalUpdates']) }}"
-    do_reboot: "{{ perform_reboot | default('yes') }}"
+  
 
   tasks:
     - name: Install Windows Updates
       win_updates:
-        category_names: "{{ update_categories }}"
-        reboot: "{{ do_reboot }}"
         reboot_timeout: 3600
