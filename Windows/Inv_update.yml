@@ -14,6 +14,4 @@
         inventory: "AWS Inventory"
         organization: "Default"
         tower_host: "https://ec2-3-147-47-103.us-east-2.compute.amazonaws.com"
-        tower_username: "admin"
-        tower_password: "{{ admin_password }}"
         tower_verify_ssl: false
