@@ -40,7 +40,6 @@
         tags:
           Name: "{{ instance_name }}"
           OS: "Windows"
-          Environment: "Development"
         user_data: |
           <powershell>
           # Enable & Configure WinRM
