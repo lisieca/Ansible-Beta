@@ -1,0 +1,115 @@
+---
+- name: Create Windows Server 2016 EC2 Instance
+  hosts: localhost
+  gather_facts: false
+
+
+
+  pre_tasks:
+    - name: Set region-specific variables
+      set_fact:
+        vpc_id: "{{ region_vars[aws_region].vpc_id }}"
+        subnet_id: "{{ region_vars[aws_region].subnet_id }}"
+        security_group: "{{ region_vars[aws_region].security_group }}"
+        key_name: "{{ region_vars[aws_region].key_name }}"
+        ami_id: "{{ region_vars[aws_region].ami_id }}"
+        instance_name: "Windows-Server-2016-{{ aws_region }}"
+        instance_type: "t3.medium"
+
+    - name: Verify region variables are set
+      debug:
+        msg:
+          - "Region: {{ aws_region }}"
+          - "VPC ID: {{ vpc_id }}"
+          - "Subnet ID: {{ subnet_id }}"
+          - "Security Group: {{ security_group }}"
+          - "Key Name: {{ key_name }}"
+          - "AMI ID: {{ ami_id }}"
+
+  tasks:
+    - name: Create Windows EC2 instance
+      amazon.aws.ec2_instance:
+        name: "{{ instance_name }}"
+        region: "{{ aws_region }}"
+        vpc_id: "{{ vpc_id }}"
+        subnet_id: "{{ subnet_id }}"
+        security_group: "{{ security_group }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ami_id }}"
+        key_name: "{{ key_name }}"
+        network:
+          assign_public_ip: true
+        wait: yes
+        state: present
+        tags:
+          Name: "{{ instance_name }}"
+          OS: "Windows"
+          Environment: "Development"
+        user_data: |
+          <powershell>
+          # Enable WinRM
+          $url = "https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"
+          $file = "$env:temp\ConfigureRemotingForAnsible.ps1"
+          (New-Object -TypeName System.Net.WebClient).DownloadFile($url, $file)
+          powershell.exe -ExecutionPolicy ByPass -File $file
+
+          # Configure WinRM for CredSSP
+          Enable-WSManCredSSP -Role Server -Force
+          Set-Item -Path WSMan:\localhost\Service\Auth\CredSSP -Value $true
+          
+          # Set network profile to private
+          Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private
+          
+          # Configure Windows Firewall
+          New-NetFirewallRule -Name "WinRM HTTPS" -DisplayName "WinRM HTTPS" -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 5986
+          </powershell>
+      register: ec2
+
+    - name: Wait for WinRM to become available
+      wait_for:
+        host: "{{ ec2.instances[0].private_ip_address }}"
+        port: 5986
+        timeout: 600
+      when: ec2.instances is defined
+
+    - name: Add instance to in-memory inventory
+      add_host:
+        name: "{{ ec2.instances[0].private_ip_address }}"
+        groups: windows_servers
+        ansible_host: "{{ ec2.instances[0].private_ip_address }}"
+        ansible_connection: winrm
+        ansible_winrm_transport: credssp
+        ansible_winrm_server_cert_validation: ignore
+        ansible_port: 5986
+        ansible_winrm_scheme: https
+      when: ec2.instances is defined
+
+    - name: Output instance information
+      debug:
+        msg: 
+          - "Instance ID: {{ ec2.instances[0].instance_id }}"
+          - "Private IP: {{ ec2.instances[0].private_ip_address }}"
+          - "Public IP: {{ ec2.instances[0].public_ip_address }}"
+      when: ec2.instances is defined
+
+- name: Configure Windows Instance
+  hosts: windows_servers
+  gather_facts: false
+  vars:
+    ansible_user: ansible-dev
+    ansible_password: "{{ windows_password }}"
+
+  tasks:
+    - name: Wait for system to become reachable
+      win_ping:
+      register: ping_result
+      until: ping_result is success
+      retries: 30
+      delay: 10
+
+    - name: Ensure WinRM is properly configured
+      win_shell: |
+        Enable-WSManCredSSP -Role Server -Force
+        Set-Item -Path WSMan:\localhost\Service\Auth\CredSSP -Value $true
+        Restart-Service WinRM
+      ignore_errors: yes
