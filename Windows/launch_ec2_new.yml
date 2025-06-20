@@ -61,9 +61,5 @@
           </powershell>
       register: ec2
 
-    - name: Wait for WinRM to become available
-      wait_for:
-        host: "{{ ec2.instances[0].private_ip_address }}"
-        port: 5986
-        timeout: 600
-      when: ec2.instances is defined
+- pause:
+    seconds: 120
