@@ -54,7 +54,9 @@
       register: ec2_with_role
     
     - name: Execute WinRM and CredSSP configuration via SSM
-      community.aws.aws_ssm_send_command:
+      amazon.aws.aws_command:
+        service: ssm
+        command: send-command
         instance_ids: "{{ ec2.instance_ids }}"
         document_name: "AWS-RunPowerShellScript"
         comment: "Configure WinRM and CredSSP"
@@ -72,4 +74,3 @@
             - winrm enumerate winrm/config/listener
             - Set-Item -Path WSMan:\*********\Service\Auth\CredSSP -Value $true
             - Set-Item -Path WSMan:\*********\Service\AllowUnencrypted -Value $false
-        wait: yes
