@@ -54,9 +54,9 @@
       register: ec2_with_role
     
     - name: Execute WinRM and CredSSP configuration via SSM
-      amazon.aws.ssm_send_command:
+      aws_ssm_send_command:
         instance_ids: "{{ ec2.instance_ids }}"
-        document_name: "AWS-RunPowerShellScript"
+        document_name: "WinRM Config"
         comment: "Configure WinRM and CredSSP"
         parameters:
           commands:
