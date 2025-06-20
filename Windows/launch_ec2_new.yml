@@ -2,7 +2,8 @@
 - name: Create Windows Server 2016 EC2 Instance
   hosts: localhost
   gather_facts: false
-
+  vars:
+    ssm_role_name: Ansible-Beta-Admin-Role
   pre_tasks:
     - name: Set region-specific variables
       set_fact:
