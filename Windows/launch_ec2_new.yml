@@ -13,7 +13,6 @@
         security_group: "{{ region_vars[aws_region].security_group }}"
         key_name: "{{ region_vars[aws_region].key_name }}"
         ami_id: "{{ region_vars[aws_region].ami_id }}"
-        instance_name: "Windows-Server-2016-{{ aws_region }}"
         instance_type: "t3.medium"
 
     - name: Verify region variables are set
