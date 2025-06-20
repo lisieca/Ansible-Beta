@@ -61,5 +61,5 @@
           </powershell>
       register: ec2
     - name: Wait 2 minutes 
-    - pause:
+      pause:
         seconds: 120
