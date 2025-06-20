@@ -60,6 +60,6 @@
             Set-Item -Path WSMan:\localhost\Service\AllowUnencrypted -Value $false
           </powershell>
       register: ec2
-
-- pause:
-    seconds: 120
+    - name: Wait 2 minutes 
+    - pause:
+        seconds: 120
