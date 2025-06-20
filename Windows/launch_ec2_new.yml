@@ -46,22 +46,22 @@
           Environment: "Development"
         user_data: |
           <powershell>
-          # Enable WinRM
-          $url = "https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"
-          $file = "$env:temp\ConfigureRemotingForAnsible.ps1"
-          (New-Object -TypeName System.Net.WebClient).DownloadFile($url, $file)
-          powershell.exe -ExecutionPolicy ByPass -File $file
-
-          # Configure WinRM for CredSSP
-          Enable-WSManCredSSP -Role Server -Force
-          Set-Item -Path WSMan:\localhost\Service\Auth\CredSSP -Value $true
-          
-          # Set network profile to private
-          Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private
-          
-          # Configure Windows Firewall
-          New-NetFirewallRule -Name "WinRM HTTPS" -DisplayName "WinRM HTTPS" -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 5986
-          </powershell>
+          # Enable & Configure WinRM
+            winrm quickconfig
+          # Configurate and enable CredSSP
+            Enable-WSManCredSSP -Role Client -DelegateComputer "*.domain.com"
+            Enable-WSManCredSSP -Role Server
+          # Create Firewall rule to allow por 5986
+             New-NetFirewallRule -DisplayName "WinRM HTTPS" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow
+          # Create SSP Certificate
+            $Hostname = $env:COMPUTERNAME
+            $Cert = New-SelfSignedCertificate -DnsName $Hostname -CertStoreLocation "Cert:\LocalMachine\My"
+            $Thumbprint = $Cert.Thumbprint
+          # Configure WinRM Listeners
+            winrm create winrm/config/Listener?Address=*+Transport=HTTPS "@{Hostname=`"$Hostname`";CertificateThumbprint=`"$Thumbprint`"}"
+            winrm enumerate winrm/config/listener
+            Set-Item -Path WSMan:\localhost\Service\Auth\CredSSP -Value $true
+            Set-Item -Path WSMan:\localhost\Service\AllowUnencrypted -Value $false
       register: ec2
 
     - name: Wait for WinRM to become available
