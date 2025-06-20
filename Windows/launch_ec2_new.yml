@@ -39,26 +39,28 @@
         tags:
           Name: "{{ instance_name }}"
           OS: "Windows"
-        user_data: |
-          <powershell>
-          # Enable & Configure WinRM
-            winrm quickconfig
-          # Configurate and enable CredSSP
-            Enable-WSManCredSSP -Role Client -DelegateComputer "*.domain.com"
-            Enable-WSManCredSSP -Role Server
-          # Create Firewall rule to allow por 5986
-             New-NetFirewallRule -DisplayName "WinRM HTTPS" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow
-          # Create SSP Certificate
-            $Hostname = $env:COMPUTERNAME
-            $Cert = New-SelfSignedCertificate -DnsName $Hostname -CertStoreLocation "Cert:\LocalMachine\My"
-            $Thumbprint = $Cert.Thumbprint
-          # Configure WinRM Listeners
-            winrm create winrm/config/Listener?Address=*+Transport=HTTPS "@{Hostname=`"$Hostname`";CertificateThumbprint=`"$Thumbprint`"}"
-            winrm enumerate winrm/config/listener
-            Set-Item -Path WSMan:\localhost\Service\Auth\CredSSP -Value $true
-            Set-Item -Path WSMan:\localhost\Service\AllowUnencrypted -Value $false
-          </powershell>
       register: ec2
     - name: Wait 2 minutes 
       pause:
         seconds: 120
+
+    - name: Execute WinRM and CredSSP configuration via SSM
+      community.aws.aws_ssm_send_command:
+        instance_ids: "{{ ec2.instance_ids }}"
+        document_name: "AWS-RunPowerShellScript"
+        comment: "Configure WinRM and CredSSP"
+        parameters:
+          commands:
+            - winrm quickconfig
+            - Enable-WSManCredSSP -Role Client -DelegateComputer "*.domain.com"
+            - Enable-WSManCredSSP -Role Server
+            - New-NetFirewallRule -DisplayName "WinRM HTTPS" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow
+            - |
+              $Hostname = $env:COMPUTERNAME
+              $Cert = New-SelfSignedCertificate -DnsName $Hostname -CertStoreLocation "Cert:\LocalMachine\My"
+              $Thumbprint = $Cert.Thumbprint
+            - winrm create winrm/config/Listener?Address=*+Transport=HTTPS "@{Hostname=`"$Hostname`";CertificateThumbprint=`"$Thumbprint`"}"
+            - winrm enumerate winrm/config/listener
+            - Set-Item -Path WSMan:\*********\Service\Auth\CredSSP -Value $true
+            - Set-Item -Path WSMan:\*********\Service\AllowUnencrypted -Value $false
+        wait: yes
