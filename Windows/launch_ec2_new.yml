@@ -11,7 +11,6 @@
         security_group: "{{ region_vars[aws_region].security_group }}"
         key_name: "{{ region_vars[aws_region].key_name }}"
         instance_type: "t3.medium"
-        ssm_role_name: "Ansible-Beta-Admin-Role"
 
     - name: Verify region variables are set
       debug:
@@ -41,10 +40,19 @@
           Name: "{{ instance_name }}"
           OS: "Windows"
       register: ec2
+    
     - name: Wait 2 minutes 
       pause:
         seconds: 120
-
+    
+    - name: Associate IAM role with instance
+      amazon.aws.ec2_instance:
+        instance_ids: "{{ ec2.instance_ids }}"
+        region: "{{ aws_region }}"
+        iam_instance_profile: "{{ ssm_role_name }}"
+        state: present
+      register: ec2_with_role
+    
     - name: Execute WinRM and CredSSP configuration via SSM
       community.aws.aws_ssm_send_command:
         instance_ids: "{{ ec2.instance_ids }}"
