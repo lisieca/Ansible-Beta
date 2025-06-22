@@ -72,9 +72,10 @@
           $Thumbprint = $Cert.Thumbprint
         - 'winrm create winrm/config/Listener?Address=*+Transport=HTTPS "@{Hostname=`"$Hostname`";CertificateThumbprint=`"$Thumbprint`"}"'
         - "winrm enumerate winrm/config/listener"
-        - "Set-Item -Path WSMan:\*********\Service\Auth\CredSSP -Value $true"
-        - "Set-Item -Path WSMan:\*********\Service\AllowUnencrypted -Value $false"
+        - "Set-Item -Path 'WSMan:\\localhost\\Service\\Auth\\CredSSP' -Value $true"
+        - "Set-Item -Path 'WSMan:\\localhost\\Service\\AllowUnencrypted' -Value $false"
      register: ssm_result
+    
     - name: Debug result
       debug:
       var: ssm_result
