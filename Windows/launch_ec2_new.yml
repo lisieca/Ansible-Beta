@@ -74,7 +74,7 @@
             - "winrm enumerate winrm/config/listener"
             - "Set-Item -Path 'WSMan:\\localhost\\Service\\Auth\\CredSSP' -Value $true"
             - "Set-Item -Path 'WSMan:\\localhost\\Service\\AllowUnencrypted' -Value $false"
-        register: ssm_result
+      register: ssm_result
 
     - name: Debug SSM result
       debug:
