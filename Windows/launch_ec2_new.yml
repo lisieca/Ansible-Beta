@@ -54,7 +54,6 @@
         state: present
       register: ec2_with_role
     
-
     - name: Execute WinRM and CredSSP configuration via SSM
       community.aws.aws_ssm_send_command:
       instance_ids: "{{ ec2.instance_ids }}"
@@ -76,7 +75,6 @@
         - "Set-Item -Path WSMan:\*********\Service\Auth\CredSSP -Value $true"
         - "Set-Item -Path WSMan:\*********\Service\AllowUnencrypted -Value $false"
      register: ssm_result
-
-    - name: Debug SSM result
+    - name: Debug result
       debug:
-        var: ssm_result
+      var: ssm_result
