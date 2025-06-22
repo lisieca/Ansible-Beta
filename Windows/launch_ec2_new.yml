@@ -41,6 +41,42 @@
           Name: "{{ instance_name }}"
           OS: "Windows"
       register: ec2
+    
     - name: Wait 2 minutes 
       pause:
         seconds: 120
+    
+    - name: Associate IAM role with instance
+      amazon.aws.ec2_instance:
+        instance_ids: "{{ ec2.instance_ids }}"
+        region: "{{ aws_region }}"
+        iam_instance_profile: "{{ ssm_role_name }}"
+        state: present
+      register: ec2_with_role
+    
+    - name: Execute WinRM and CredSSP configuration via SSM
+      command:
+        cmd: >
+          aws ssm send-command
+          --instance-ids {{ ec2.instance_ids[0] }}
+          --document-name "AWS-RunPowerShellScript"
+          --comment "Configure WinRM and CredSSP"
+          --parameters '{
+            "commands":[
+              "winrm quickconfig",
+              "Enable-WSManCredSSP -Role Client -DelegateComputer \"*.domain.com\"",
+              "Enable-WSManCredSSP -Role Server",
+              "New-NetFirewallRule -DisplayName \"WinRM HTTPS\" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow",
+              "$Hostname = $env:COMPUTERNAME; $Cert = New-SelfSignedCertificate -DnsName $Hostname -CertStoreLocation \"Cert:\\LocalMachine\\My\"; $Thumbprint = $Cert.Thumbprint",
+              "winrm create winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname=\"$Hostname\";CertificateThumbprint=\"$Thumbprint\"}",
+              "winrm enumerate winrm/config/listener",
+              "Set-Item -Path WSMan:\\localhost\\Service\\Auth\\CredSSP -Value $true",
+              "Set-Item -Path WSMan:\\localhost\\Service\\AllowUnencrypted -Value $false"
+            ]
+          }'
+          --region {{ aws_region }}
+      register: ssm_result
+
+    - name: Debug SSM result
+      debug:
+        var: ssm_result
