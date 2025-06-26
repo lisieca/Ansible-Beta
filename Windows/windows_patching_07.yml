@@ -12,10 +12,6 @@
   
 
   tasks:
-    - name: Debug categories variable
-      debug:
-        var: categories
-   
     - name: Install Windows Updates
       win_updates:
         category_names: "{{ categories }}"
