@@ -13,10 +13,13 @@
 
   tasks:
     - name: List Categories
+      vars:
+        categories_once: "{{ categories }}"
       debug:
         msg:
           - "Running Windows Patching For Selected Categories: 
-            {{ categories }}"
+            {{ categories_once }}"
+      run_once: true
 
     - name: Install Windows Updates
       win_updates:
