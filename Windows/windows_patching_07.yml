@@ -12,6 +12,12 @@
   
 
   tasks:
+    - name: List Categories
+      debug:
+        msg:
+          - "Running Windows Patching For Selected Categories: 
+            {{ categories }}"
+
     - name: Install Windows Updates
       win_updates:
         category_names: "{{ categories }}"
